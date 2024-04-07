@@ -2,36 +2,41 @@ cmake_minimum_required(VERSION 3.8)
 
 project(hio)
 
-set(HFS "C:/Program Files/Side Effects Software/Houdini 17.0.416" CACHE STRING "Houdini Path")
+set(HFS "C:/Program Files/Side Effects Software/Houdini 19.5.569" CACHE STRING "Houdini Path")
 
 set(TOOLKIT_CMAKE "${HFS}/toolkit/cmake")
 list(APPEND CMAKE_PREFIX_PATH "${TOOLKIT_CMAKE}")
 
 find_package( Houdini REQUIRED )
-include_directories( Houdini )
-link_libraries( Houdini )
+
+link_libraries(
+	${HFS}/custom/houdini/dsolib/libUT.lib;
+	${HFS}/custom/houdini/dsolib/libSYS.lib;
+	${HFS}/custom/houdini/dsolib/libGU.lib;
+	${HFS}/custom/houdini/dsolib/libGEO.lib;
+	${HFS}/custom/houdini/dsolib/libGA.lib;
+	${HFS}/custom/houdini/dsolib/tbb.lib;
+)
 
 set(HIO_VERSION_SUFFIX "${Houdini_VERSION_MAJOR}_${Houdini_VERSION_MINOR}_${Houdini_VERSION_PATCH}")
 
-file(GLOB HEADERS "src/*.h")
+file(GLOB HEADERS "${CMAKE_CURRENT_SOURCE_DIR}/src/*.h")
 
 include_directories(
-	"src"
-	"libs/Catch2/single_include"
+	${HFS}/toolkit/include;
+	${CMAKE_CURRENT_SOURCE_DIR}/src
+	${CMAKE_CURRENT_SOURCE_DIR}/libs/Catch2/src
 )
 
-if (APPLE)
-	set(CMAKE_CXX_STANDARD 11)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -stdlib=libc++")
-endif()
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std:c++17")
 
+add_subdirectory(libs/Catch2)
 add_subdirectory(libs/pybind11)
 
 set(TESTAPP_NAME "testapp_${HIO_VERSION_SUFFIX}")
 set(PYMODULE_NAME "core_${HIO_VERSION_SUFFIX}")
 
 ###
-
 set(OUT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/test)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${OUT_DIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${OUT_DIR})
@@ -42,7 +47,8 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG ${OUT_DIR})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE ${OUT_DIR})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELWITHDEBINFO ${OUT_DIR})
 
-add_executable(${TESTAPP_NAME} "src/main.cpp" "src/hio.cpp" ${HEADERS})
+add_executable(${TESTAPP_NAME} "src/main.cpp" "src/hio.cpp")
+# target_link_libraries(${TESTAPP_NAME} PRIVATE Catch2::Catch2WithMain)
 
 set_target_properties(${TESTAPP_NAME} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test)
 set_target_properties(${TESTAPP_NAME} PROPERTIES VS_DEBUGGER_ENVIRONMENT "PATH=${HFS}/bin")
@@ -53,5 +59,5 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG ${OUT_DIR})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE ${OUT_DIR})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELWITHDEBINFO ${OUT_DIR})
 
-pybind11_add_module(${PYMODULE_NAME} MODULE "src/module.cpp" "src/hio.cpp" ${HEADERS})
-target_compile_definitions(${PYMODULE_NAME} PRIVATE CMAKE_PYMODULE_NAME=${PYMODULE_NAME})
+pybind11_add_module(${PYMODULE_NAME} MODULE "src/module.cpp" "src/hio.cpp")
+target_compile_definitions(${PYMODULE_NAME} PRIVATE CMAKE_PYMODULE_NAME=${PYMODULE_NAME};AMD64;SIZEOF_VOID_P=8;FBX_ENABLED=0;OPENCL_ENABLED=0;OPENVDB_ENABLED=0;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS=1;SESI_LITTLE_ENDIAN;$<$<CONFIG:Release>:UT_ASSERT_LEVEL=0>;$<$<CONFIG:RelWithDebInfo>:UT_ASSERT_LEVEL=1>;$<$<CONFIG:Debug>:UT_ASSERT_LEVEL=2>;USE_PYTHON3=1;I386;WIN32;SWAP_BITFIELDS;_WIN32_WINNT=0x0600;NOMINMAX;STRICT;WIN32_LEAN_AND_MEAN;_USE_MATH_DEFINES;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;_SCL_SECURE_NO_WARNINGS;HBOOST_ALL_NO_LIB;EIGEN_MALLOC_ALREADY_ALIGNED=0;$<$<CONFIG:Debug>:_HAS_ITERATOR_DEBUGGING=0>)

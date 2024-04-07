@@ -14,4 +14,4 @@ Update: rolled back to an older version of the CMakeList.txt file. Totally frank
 3. git clone pybind11 to /hio/libs ```git clone git@github.com:pybind/pybind11.git```
 4. git clone Catch2 to /hio/Catch2 (make sure to clone the 2.x branch) ```git clone -b v2.x git@github.com:catchorg/Catch2.git```
 5. ```./build.bat "C:/Program Files/Side Effects Software/Houdini 20.0.625" "h:/home/pyenv/py_win_3.11.8/Scripts/python.exe"```
-6. open _build/hio.sln in VS22 and Release/buld core_20_0_625
+6. open _build/hio.sln in VS22 and build Release of core_20_0_625

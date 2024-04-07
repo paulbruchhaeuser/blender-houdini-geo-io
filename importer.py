@@ -23,7 +23,7 @@ def import_mesh(geo: hio.Geometry, name: str, opts: dict):
     vertex_indices = pdata["vertices"]
     loop_start = pdata["vertex_start_index"]
     loop_total = pdata["vertex_count"]
-    closed = pdata["closed"]
+    #closed = pdata["closed"]
 
     ###
 
@@ -35,7 +35,8 @@ def import_mesh(geo: hio.Geometry, name: str, opts: dict):
     me.polygons.foreach_set("loop_total", loop_total)
     
     ###
-
+    print(dir(opts))
+    
     skip_normals = opts['skip_normals']
 
     # Vertex attributes
@@ -130,9 +131,13 @@ def import_mesh(geo: hio.Geometry, name: str, opts: dict):
             if skip_normals:
                 continue
 
-            me.create_normals_split()
+            # function removed in 4.1
+            # me.create_normals_split()
             me.validate(clean_customdata=False)
-            me.polygons.foreach_set("use_smooth", np.ones(len(me.polygons), dtype=np.bool))
+
+            # changes in numpy
+            #me.polygons.foreach_set("use_smooth", np.ones(len(me.polygons), dtype=np.bool))
+            me.polygons.foreach_set("use_smooth", np.ones(len(me.polygons), dtype=bool))
 
             data = attr.attribValue()
             data = data.flatten()
@@ -140,7 +145,11 @@ def import_mesh(geo: hio.Geometry, name: str, opts: dict):
 
             data = tuple(zip(*(iter(data),) * 3))
             me.normals_split_custom_set_from_vertices(data)
-            me.use_auto_smooth = True
+
+            # removes in 4.1
+            # me.use_auto_smooth = True
+            smooth_angle = np.deg2rad(30.0)
+            me.set_sharp_from_angle(angle=smooth_angle)
             continue
 
         data = attr.attribValue()

@@ -33,11 +33,11 @@ importlib.reload(importer)
 
 bl_info = {
     "name": "Houdini Geo IO",
-    "author": "satoruhiga",
+    "author": "satoruhiga, hacked to work with B4.1 by pfbruchhaeuser",
     "version": (1, 0),
     "blender": (4, 0, 0),
     "location": "",
-    "description": "",
+    "description": "bgeo.sc exchange PlugIn",
     "warning": "",
     "support": "COMMUNITY",
     "wiki_url": "",

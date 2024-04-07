@@ -11,8 +11,12 @@ from bpy_extras.io_utils import axis_conversion
 def export_mesh(path: str, me):
     assert len(me.polygons) > 0, "Only supports polygons. No lines or points."
 
+    print(type(me))
+
     me.flip_normals()
-    me.calc_normals_split()
+
+    # removed in 4.1
+    # me.calc_normals_split()
 
     geo = hio.Geometry()
 

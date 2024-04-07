@@ -1,36 +1,55 @@
 import os
-from .find_houdini import find_houdini, append_path
+import sys
+import importlib
 
-HFS = find_houdini()
+from . import find_houdini
 
-if not HFS:
-	raise ImportError('Houdini not found')
+HFS = find_houdini.find_houdini()
 
-_mod_list = filter(lambda x: x.startswith('core_'),
-				  os.listdir(os.path.dirname(__file__)))
-_mod_list = list(map(lambda x: x.split('.')[0], _mod_list))
+key = ''
+path = ''
 
-core = None
+for key_value in HFS:
+	if (key_value == '20.0.625'):
+		key = key_value
+		path = HFS[key]
 
-for HOUDINI_VERSION in sorted(HFS.keys(), reverse=True):
-	mod_name = 'core_%s' % HOUDINI_VERSION.replace('.', '_')
+debug = True
 
-	if not mod_name in _mod_list:
-		continue
+if debug:
+	print('[HIO INIT]\n[+] houdini path: {}'.format(path))
 
-	append_path(HFS[HOUDINI_VERSION])
+# from old code snippet - don't do it if you want to use it inside blender
+# ERROR: ImportError: DLL load failed while importing core_19_0_622: The operating system cannot run %1.
 
-	import importlib
-	core = importlib.import_module('.' + mod_name, package=__package__)
-	break
+# if you do hio_test.py - uncomment this
+# 22/08/26 - seems both should be on !?
+bin_dir = os.path.join(path, 'bin')
+os.add_dll_directory(bin_dir)
 
-if not core:
-	raise ImportError('Houdini version not supported. You should build core module for your Houdini version.')
+# instead to this
+os.add_dll_directory('C:/Windows/System32')
 
-del append_path
+base_path = os.path.dirname(os.path.abspath(__file__))
+module_name = f"core_{key.replace('.', '_')}"
+
+if debug:
+	print('[+] path: {}\n[+] module_name: {}'.format(base_path, module_name))
+	print('[+] Extension: {}'.format(importlib.machinery.EXTENSION_SUFFIXES))
+
+try:
+	sys.path.append(base_path)
+	core = importlib.import_module(module_name)
+except ImportError as err:
+    print('[+] Import Error:', err)
+finally:
+	sys.path.remove(base_path)
+	pass
+
+assert(core)
+
 del find_houdini
 del HFS
-del _mod_list
 
 AttribType = core.AttribType
 AttribData = core.AttribData
